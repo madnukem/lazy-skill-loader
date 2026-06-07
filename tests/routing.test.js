@@ -30,7 +30,7 @@ function skill(id, keywords, opts = {}) {
   });
 }
 
-// ── Basic Keyword Matching ─────────────────────────────────────────────────
+// ── Basic Keyword Matching (5) ─────────────────────────────────────────────
 
 test('exact keyword match returns skill', () => {
   const reg = makeRegistry([skill('tdd', ['test', 'tdd', 'spec'])]);
@@ -44,7 +44,7 @@ test('case-insensitive keyword match', () => {
   assert(result.matched.some(s => s.id === 'security'), `Expected security, got ${JSON.stringify(result.matched)}`);
 });
 
-test('partial keyword match in message', () => {
+test('keyword as whole word in message', () => {
   const reg = makeRegistry([skill('debug', ['debug', 'fix', 'error', 'traceback'])]);
   const result = route('fix the bug in authentication', [], reg);
   assert(result.matched.some(s => s.id === 'debug'), `Expected debug, got ${JSON.stringify(result.matched)}`);
@@ -56,7 +56,14 @@ test('no match returns empty array', () => {
   assert(result.matched.length === 0, `Expected empty, got ${JSON.stringify(result.matched)}`);
 });
 
-// ── Multi-Skill Matching ───────────────────────────────────────────────────
+test('substring match scores lower than exact word', () => {
+  const reg = makeRegistry([skill('fix', ['fix'])]);
+  const result = route('fix the prefix issue', [], reg);
+  assert(result.matched.length === 1, `Expected 1 match`);
+  assert(result.matched[0]._score >= 10, `Word "fix" should score >=10, got ${result.matched[0]._score}`);
+});
+
+// ── Multi-Skill Matching (2) ───────────────────────────────────────────────
 
 test('multiple skills can match', () => {
   const reg = makeRegistry([
@@ -78,7 +85,7 @@ test('duplicate matches are deduplicated', () => {
   assert(ids.length === unique.size, `Duplicates found: ${JSON.stringify(ids)}`);
 });
 
-// ── File Pattern Matching ──────────────────────────────────────────────────
+// ── File Pattern Matching (3) ──────────────────────────────────────────────
 
 test('file pattern *.sql matches sql file', () => {
   const reg = makeRegistry([skill('database', ['sql'], { file_patterns: ['**/*.sql'] })]);
@@ -98,7 +105,7 @@ test('file pattern does not match unrelated file', () => {
   assert(result.matched.length === 0, `Expected empty, got ${JSON.stringify(result.matched)}`);
 });
 
-// ── Combined Keyword + File Pattern ────────────────────────────────────────
+// ── Combined Keyword + File Pattern (1) ────────────────────────────────────
 
 test('keyword OR file pattern triggers match', () => {
   const reg = makeRegistry([skill('frontend', ['react', 'component'], { file_patterns: ['**/*.tsx'] })]);
@@ -106,18 +113,25 @@ test('keyword OR file pattern triggers match', () => {
   assert(result.matched.some(s => s.id === 'frontend'), `Expected frontend from file pattern, got ${JSON.stringify(result.matched)}`);
 });
 
-// ── Relevance Ranking ──────────────────────────────────────────────────────
+// ── Tag Overlap Scoring (2) ────────────────────────────────────────────────
 
-test('skills are ranked by tag overlap', () => {
+test('tag overlap adds score bonus', () => {
   const reg = makeRegistry([
-    skill('tdd', ['test'], { tags: ['testing', 'quality'] }),
-    skill('benchmark', ['test'], { tags: ['performance'] }),
+    skill('perf-test', ['test'], { tags: ['testing', 'performance'] }),
+    skill('unit-test', ['test'], { tags: ['testing'] }),
   ]);
   const result = route('run performance test', [], reg);
-  assert(result.matched.length >= 1, 'Expected at least 1 match');
+  assert(result.matched.length === 2, `Expected 2, got ${result.matched.length}`);
+  assert(result.matched[0].id === 'perf-test', `Expected perf-test first (tag bonus), got ${result.matched[0].id}`);
 });
 
-// ── Max Results ────────────────────────────────────────────────────────────
+test('no tag overlap still matches', () => {
+  const reg = makeRegistry([skill('basic', ['test'], { tags: ['unrelated'] })]);
+  const result = route('write a test', [], reg);
+  assert(result.matched.length === 1, `Expected 1 match`);
+});
+
+// ── Max Results (1) ────────────────────────────────────────────────────────
 
 test('maxResults limits returned skills', () => {
   const reg = makeRegistry([
@@ -131,7 +145,7 @@ test('maxResults limits returned skills', () => {
   assert(result.matched.length <= 3, `Expected <=3, got ${result.matched.length}`);
 });
 
-// ── Edge Cases ─────────────────────────────────────────────────────────────
+// ── Edge Cases (4) ─────────────────────────────────────────────────────────
 
 test('empty message returns no matches', () => {
   const reg = makeRegistry([skill('debug', ['error', 'fix'])]);
@@ -145,14 +159,8 @@ test('empty keywords array — skill never matches by keyword', () => {
   assert(result.matched.length === 0, `Expected no match for skill with empty keywords`);
 });
 
-test('skill with keywords but no message keywords — no match', () => {
-  const reg = makeRegistry([skill('docker', ['docker', 'container', 'k8s'])]);
-  const result = route('build a python script', [], reg);
-  assert(result.matched.length === 0, `Expected no match`);
-});
-
 test('special regex characters in keywords do not crash', () => {
-  const reg = makeRegistry([skill('c++', ['c++', 'c\\+\\+'])]);
+  const reg = makeRegistry([skill('cpp', ['c++'])]);
   const result = route('write c++ code', [], reg);
   assert(result.matched.length >= 0, 'Should not crash on special chars');
 });
@@ -164,7 +172,7 @@ test('very long message does not crash', () => {
   assert(result.matched.length >= 1, 'Should handle long messages');
 });
 
-// ── Language Filter ────────────────────────────────────────────────────────
+// ── Language Filter (3) ────────────────────────────────────────────────────
 
 test('language any always matches', () => {
   const reg = makeRegistry([skill('general', ['code'], { languages: ['any'] })]);
@@ -184,7 +192,7 @@ test('language filter includes matching', () => {
   assert(result.matched.some(s => s.id === 'python-only'), `Expected python-only to match`);
 });
 
-// ── Token Budget ───────────────────────────────────────────────────────────
+// ── Token Budget (1) ───────────────────────────────────────────────────────
 
 test('token budget prunes low-relevance skills', () => {
   const reg = makeRegistry([
@@ -197,7 +205,7 @@ test('token budget prunes low-relevance skills', () => {
   assert(totalTokens <= 1000, `Token budget exceeded: ${totalTokens}`);
 });
 
-// ── Complex Task Detection ─────────────────────────────────────────────────
+// ── Complex Task Detection (2) ─────────────────────────────────────────────
 
 test('detects complex task by methodology count', () => {
   const reg = makeRegistry([

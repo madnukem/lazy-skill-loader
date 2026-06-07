@@ -200,7 +200,7 @@
       "source": "agent-skills",
       "path": "skills/gate-based/deprecation/SKILL.md",
       "triggers": {
-        "keywords": ["deprecat", "migrat", "sunset", "remove old", "replace", "upgrade", "legacy"],
+        "keywords": ["deprecate", "deprecation", "deprecated", "migrate", "migration", "sunset", "remove old", "replace", "upgrade", "legacy"],
         "file_patterns": [],
         "languages": ["any"]
       },

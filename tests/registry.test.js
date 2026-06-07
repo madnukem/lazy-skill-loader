@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// registry.test.js — Registry validation tests (15 tests)
+// registry.test.js — Registry validation tests (20 tests)
 
 const { createSuite, createTestRunner, makeSkill } = require('./helpers');
 const { test, assert, results } = createTestRunner();
@@ -33,6 +33,21 @@ test('empty skills array is valid', () => {
   const { validateRegistry } = require('../lib/registry');
   const errors = validateRegistry(readRegistry());
   assert(errors.length === 0, `Expected no errors, got: ${errors}`);
+});
+
+// ── Null / Malformed Guard ─────────────────────────────────────────────────
+
+test('null skill entry does not crash', () => {
+  writeRegistry({ version: 1, skills: [null, undefined] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.length >= 2, `Expected errors for null entries, got ${errors.length}`);
+});
+
+test('null registry returns version error', () => {
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(null);
+  assert(errors.some(e => e.includes('version')), `Expected version error for null, got: ${errors}`);
 });
 
 // ── Required Fields ────────────────────────────────────────────────────────
@@ -112,6 +127,14 @@ test('triggers.file_patterns must be array', () => {
   assert(errors.some(e => e.includes('file_patterns')), `Expected file_patterns error, got: ${errors}`);
 });
 
+test('triggers.languages must be array if present', () => {
+  const skill = makeSkill({ triggers: { keywords: [], file_patterns: [], languages: 'python' } });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('languages')), `Expected languages error, got: ${errors}`);
+});
+
 test('empty keywords array is valid', () => {
   const skill = makeSkill({ triggers: { keywords: [], file_patterns: [], languages: ['any'] } });
   writeRegistry({ version: 1, skills: [skill] });
@@ -137,6 +160,35 @@ test('missing token_estimate defaults to 1000', () => {
   const { normalizeRegistry } = require('../lib/registry');
   const reg = normalizeRegistry(readRegistry());
   assert(reg.skills[0].token_estimate === 1000, `Expected 1000, got ${reg.skills[0].token_estimate}`);
+});
+
+// ── Normalize Does Not Mutate ──────────────────────────────────────────────
+
+test('normalizeRegistry does not mutate original', () => {
+  const original = { version: 1, skills: [makeSkill()] };
+  const originalSkillsRef = original.skills;
+  const { normalizeRegistry } = require('../lib/registry');
+  normalizeRegistry(original);
+  assert(original.skills === originalSkillsRef, 'normalizeRegistry mutated the input');
+});
+
+test('normalizeRegistry fills missing triggers.languages', () => {
+  const skill = makeSkill();
+  delete skill.triggers.languages;
+  writeRegistry({ version: 1, skills: [skill] });
+  const { normalizeRegistry } = require('../lib/registry');
+  const reg = normalizeRegistry(readRegistry());
+  assert(reg.skills[0].triggers.languages.length === 1, `Expected 1 lang, got ${reg.skills[0].triggers.languages}`);
+  assert(reg.skills[0].triggers.languages[0] === 'any', `Expected 'any', got ${reg.skills[0].triggers.languages[0]}`);
+});
+
+// ── Smoke Test: Real Registry ──────────────────────────────────────────────
+
+test('real skills-registry.json is valid', () => {
+  const real = require('../registry/skills-registry.json');
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(real);
+  assert(errors.length === 0, `Real registry has errors: ${JSON.stringify(errors)}`);
 });
 
 // ── Summary ────────────────────────────────────────────────────────────────
