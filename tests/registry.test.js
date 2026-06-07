@@ -1,0 +1,146 @@
+#!/usr/bin/env node
+// registry.test.js — Registry validation tests (15 tests)
+
+const { createSuite, createTestRunner, makeSkill } = require('./helpers');
+const { test, assert, results } = createTestRunner();
+const { writeRegistry, readRegistry, cleanup } = createSuite('registry');
+
+// ── Schema Validation ──────────────────────────────────────────────────────
+
+test('valid registry parses without error', () => {
+  writeRegistry({ version: 1, skills: [makeSkill()] });
+  const reg = readRegistry();
+  assert(reg !== null, 'Registry should parse');
+  assert(reg.version === 1, 'Version should be 1');
+});
+
+test('registry requires version field', () => {
+  writeRegistry({ skills: [makeSkill()] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('version')), `Expected version error, got: ${errors}`);
+});
+
+test('registry requires skills array', () => {
+  writeRegistry({ version: 1 });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('skills')), `Expected skills error, got: ${errors}`);
+});
+
+test('empty skills array is valid', () => {
+  writeRegistry({ version: 1, skills: [] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.length === 0, `Expected no errors, got: ${errors}`);
+});
+
+// ── Required Fields ────────────────────────────────────────────────────────
+
+test('skill requires id', () => {
+  const skill = makeSkill();
+  delete skill.id;
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('id')), `Expected id error, got: ${errors}`);
+});
+
+test('skill requires name', () => {
+  const skill = makeSkill();
+  delete skill.name;
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('name')), `Expected name error, got: ${errors}`);
+});
+
+test('skill requires description', () => {
+  const skill = makeSkill();
+  delete skill.description;
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('description')), `Expected description error, got: ${errors}`);
+});
+
+test('skill requires path', () => {
+  const skill = makeSkill();
+  delete skill.path;
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('path')), `Expected path error, got: ${errors}`);
+});
+
+test('skill requires triggers', () => {
+  const skill = makeSkill();
+  delete skill.triggers;
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('triggers')), `Expected triggers error, got: ${errors}`);
+});
+
+// ── Uniqueness ─────────────────────────────────────────────────────────────
+
+test('duplicate skill ids are rejected', () => {
+  writeRegistry({
+    version: 1,
+    skills: [makeSkill({ id: 'same-id' }), makeSkill({ id: 'same-id', name: 'Other' })],
+  });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('duplicate')), `Expected duplicate error, got: ${errors}`);
+});
+
+// ── Triggers Validation ────────────────────────────────────────────────────
+
+test('triggers.keywords must be array', () => {
+  const skill = makeSkill({ triggers: { keywords: 'not-array', file_patterns: [], languages: [] } });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('keywords')), `Expected keywords error, got: ${errors}`);
+});
+
+test('triggers.file_patterns must be array', () => {
+  const skill = makeSkill({ triggers: { keywords: [], file_patterns: '*.js', languages: [] } });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('file_patterns')), `Expected file_patterns error, got: ${errors}`);
+});
+
+test('empty keywords array is valid', () => {
+  const skill = makeSkill({ triggers: { keywords: [], file_patterns: [], languages: ['any'] } });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.length === 0, `Expected no errors, got: ${errors}`);
+});
+
+// ── Token Estimate ─────────────────────────────────────────────────────────
+
+test('token_estimate must be positive number', () => {
+  const skill = makeSkill({ token_estimate: -100 });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('token_estimate')), `Expected token_estimate error, got: ${errors}`);
+});
+
+test('missing token_estimate defaults to 1000', () => {
+  const skill = makeSkill();
+  delete skill.token_estimate;
+  writeRegistry({ version: 1, skills: [skill] });
+  const { normalizeRegistry } = require('../lib/registry');
+  const reg = normalizeRegistry(readRegistry());
+  assert(reg.skills[0].token_estimate === 1000, `Expected 1000, got ${reg.skills[0].token_estimate}`);
+});
+
+// ── Summary ────────────────────────────────────────────────────────────────
+
+const code = results();
+cleanup();
+process.exit(code);

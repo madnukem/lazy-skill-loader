@@ -1,0 +1,22 @@
+{
+  "name": "lazy-skill-loader",
+  "version": "0.1.0",
+  "description": "Progressive disclosure skill loader for Claude Code — L1 registry, keyword router, on-demand L2 loading",
+  "author": "Vassa",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "skills",
+    "lazy-loading",
+    "routing",
+    "progressive-disclosure"
+  ],
+  "scripts": {
+    "test": "node tests/registry.test.js && node tests/routing.test.js",
+    "test:registry": "node tests/registry.test.js",
+    "test:routing": "node tests/routing.test.js"
+  },
+  "dependencies": {
+    "minimatch": "^10.2.5"
+  }
+}
