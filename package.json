@@ -12,10 +12,11 @@
     "progressive-disclosure"
   ],
   "scripts": {
-    "test": "node tests/registry.test.js && node tests/routing.test.js && node tests/methodology.test.js",
+    "test": "node tests/registry.test.js && node tests/routing.test.js && node tests/methodology.test.js && node tests/lifecycle.test.js",
     "test:registry": "node tests/registry.test.js",
     "test:routing": "node tests/routing.test.js",
-    "test:methodology": "node tests/methodology.test.js"
+    "test:methodology": "node tests/methodology.test.js",
+    "test:lifecycle": "node tests/lifecycle.test.js"
   },
   "engines": {
     "node": ">=14.14"
