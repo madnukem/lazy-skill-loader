@@ -224,6 +224,27 @@ test('simple task does not flag multi-methodology', () => {
   assert(result.multiMethodology === false, `Should not flag single methodology`);
 });
 
+// ── Performance Benchmark (1) ──────────────────────────────────────────────
+
+test('routes 50 skills × 10 files under 5ms', () => {
+  const skills = [];
+  for (let i = 0; i < 50; i++) {
+    skills.push(skill(`skill-${i}`, [`keyword-${i}`, 'common'], {
+      file_patterns: i % 2 === 0 ? [`**/*.ext${i}`] : [],
+      token_estimate: 500,
+    }));
+  }
+  const reg = makeRegistry(skills);
+  const files = Array.from({ length: 10 }, (_, i) => `file${i}.ext${i * 5}`);
+
+  const start = process.hrtime.bigint();
+  const result = route('common keyword-25 task', files, reg);
+  const elapsed = Number(process.hrtime.bigint() - start) / 1e6;
+
+  assert(elapsed < 5, `Routing took ${elapsed.toFixed(2)}ms, expected < 5ms`);
+  assert(result.matched.length >= 1, `Expected at least 1 match`);
+});
+
 // ── Summary ────────────────────────────────────────────────────────────────
 
 const code = results();

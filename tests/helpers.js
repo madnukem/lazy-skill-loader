@@ -10,7 +10,7 @@ const os = require('os');
 function createSuite(prefix) {
   const testDir = fs.mkdtempSync(path.join(os.tmpdir(), `lsl-${prefix}-`));
   const registryFile = path.join(testDir, 'skills-registry.json');
-  const env = { ...process.env, LSL_STATE_DIR: testDir };
+  process.on('exit', () => { try { fs.rmSync(testDir, { recursive: true }); } catch {} });
 
   function writeRegistry(data) {
     fs.writeFileSync(registryFile, JSON.stringify(data, null, 2));
@@ -25,7 +25,7 @@ function createSuite(prefix) {
     try { fs.rmSync(testDir, { recursive: true }); } catch {}
   }
 
-  return { testDir, registryFile, env, writeRegistry, readRegistry, cleanup };
+  return { testDir, registryFile, writeRegistry, readRegistry, cleanup };
 }
 
 function createTestRunner() {

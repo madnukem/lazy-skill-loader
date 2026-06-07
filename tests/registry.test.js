@@ -191,6 +191,32 @@ test('real skills-registry.json is valid', () => {
   assert(errors.length === 0, `Real registry has errors: ${JSON.stringify(errors)}`);
 });
 
+// ── Path Traversal Guard ───────────────────────────────────────────────────
+
+test('path with ../ is rejected', () => {
+  const skill = makeSkill({ path: '../../etc/passwd' });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('path') && e.includes('escape')), `Expected path traversal error, got: ${errors}`);
+});
+
+test('absolute path is rejected', () => {
+  const skill = makeSkill({ path: '/etc/passwd' });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.some(e => e.includes('path') && e.includes('escape')), `Expected absolute path error, got: ${errors}`);
+});
+
+test('valid relative path is accepted', () => {
+  const skill = makeSkill({ path: 'skills/test/SKILL.md' });
+  writeRegistry({ version: 1, skills: [skill] });
+  const { validateRegistry } = require('../lib/registry');
+  const errors = validateRegistry(readRegistry());
+  assert(errors.length === 0, `Expected no errors, got: ${errors}`);
+});
+
 // ── Summary ────────────────────────────────────────────────────────────────
 
 const code = results();
