@@ -17,12 +17,20 @@ try {
     process.exit(0);
   }
 
+  if (registry.skills.length > 500) {
+    console.log('Lazy Skill Loader: registry too large (' + registry.skills.length + ' skills, max 500)');
+    process.exit(0);
+  }
+
   const lines = ['Lazy Skill Loader: L1 index loaded. ' + registry.skills.length + ' skills available.\n'];
   lines.push('| ID | Description | Methodology |');
   lines.push('|---|---|---|');
   for (const skill of registry.skills) {
-    const desc = (skill.description || '').substring(0, 80);
-    lines.push(`| ${skill.id} | ${desc} | ${skill.methodology || '?'} |`);
+    if (!skill || typeof skill !== 'object') continue;
+    const id = String(skill.id || '?').substring(0, 40);
+    const desc = String(skill.description || '').substring(0, 80);
+    const meth = String(skill.methodology || '?').substring(0, 20);
+    lines.push(`| ${id} | ${desc} | ${meth} |`);
   }
   lines.push('\nUse the Skill tool to load full instructions for any skill above.');
 
