@@ -1,0 +1,301 @@
+# Lazy Skill Loader for Claude Code
+
+> Progressive disclosure system — L1 index stays in prompt, L2 skills load on demand. Cuts 40K+ token overhead to ~600 tokens.
+
+By Vassa
+
+## The Problem
+
+Claude Code skills systems like agent-skills, superpowers, and gstack load **all** skill definitions into the context. With 30+ skills, that's 40K+ tokens wasted — 10%+ of the context window on content the agent rarely uses in a single session.
+
+```
+Session with 30 skills loaded:
+  - Skill definitions: ~40K tokens (always present)
+  - User prompt + code: ~5K tokens
+  - 87% of skill content is unused in most sessions
+
+The model loads skills for:
+  - TDD → code-review is irrelevant
+  - API design → browser-testing is irrelevant
+  - Frontend → shipping-checklist is irrelevant
+```
+
+## Solution
+
+Three-layer progressive disclosure:
+
+### L1: Lightweight Index (~540 tokens)
+
+A table of all skills with minimal metadata:
+- ID, one-line description, methodology tag
+- Loaded via SessionStart hook
+- Always available for routing decisions
+
+### L2: Full Skill Content (on-demand)
+
+Complete SKILL.md loaded only when:
+- Keyword match in user message
+- File pattern match (open files)
+- Language match
+- Token budget available
+
+### L3: Executable Tools
+
+The skill's actual tool calls (Bash, Agent, etc.) — executed after L2 content guides the model.
+
+```
+Traditional:           Lazy Skill Loader:
+┌─────────────────┐   ┌─────────────────┐
+│ All 30 skills    │   │ L1 index only   │
+│ 40K tokens       │   │ 540 tokens      │
+└─────────────────┘   └────┬────────────┘
+                          │
+                   ┌──────▼──────┐
+                   │ Agent routes │
+                   │ via keywords │
+                   └──────┬──────┘
+                          │
+                   ┌──────▼──────┐
+                   │ Load L2 skill│
+                   │ ~2K tokens   │
+                   └─────────────┘
+```
+
+## Architecture
+
+```
+                    ┌──────────────────────┐
+                    │   Claude Code        │
+                    │   Session Start      │
+                    │                      │
+                    │  ┌────────────────┐ │
+                    │  │ SessionStart   │ │
+                    │  │ hook executes  │ │
+                    │  │ L1 index to   │ │
+                    │  │ stdout (inject │ │
+                    │  │ into prompt)   │ │
+                    │  └────────┬───────┘ │
+                    └────────────┼────────┘
+                                 │
+                    ┌────────────▼──────────┐
+                    │  L1 Index in Context   │
+                    │  30 skills, 540 tokens │
+                    └────────────┬──────────┘
+                                 │
+                    ┌────────────▼──────────┐
+                    │  User: "fix bug in     │
+                    │  authentication.ts"   │
+                    └────────────┬──────────┘
+                                 │
+                    ┌────────────▼──────────┐
+                    │  Router (lib/router.js)│
+                    │  - Keyword: "bug"      │
+                    │  - Keyword: "fix"      │
+                    │  - File: "*.ts"        │
+                    │  → Matches: debugging │
+                    └────────────┬──────────┘
+                                 │
+                    ┌────────────▼──────────┐
+                    │  Lifecycle Manager    │
+                    │  (lib/lifecycle.js)    │
+                    │  - Load L2 content    │
+                    │  - Track token budget │
+                    │  - Evict when full    │
+                    └────────────┬──────────┘
+                                 │
+                    ┌────────────▼──────────┐
+                    │  L2 Content Loaded    │
+                    │  Full SKILL.md ~2K    │
+                    │  tokens               │
+                    └───────────────────────┘
+```
+
+### Key Components
+
+| File | Purpose |
+|------|---------|
+| `hooks/session-start.js` | SessionStart hook — outputs L1 index table |
+| `lib/router.js` | Keyword + file pattern routing with scoring |
+| `lib/lifecycle.js` | L2 loading, token budget, eviction |
+| `lib/registry.js` | Registry validation and normalization |
+| `lib/methodology.js` | Complexity detection + methodology choice |
+| `registry/skills-registry.json` | Central registry of all skills |
+| `skills/lazy-skill-loader/SKILL.md` | This skill's own definition |
+
+## Installation
+
+### Manual
+
+Add to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node <path-to>/lazy-skill-loader/hooks/session-start.js"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Use absolute paths. Example: `node /home/user/lazy-skill-loader/hooks/session-start.js`
+
+### Registry Location
+
+The `registry/skills-registry.json` path is resolved relative to the project root. Skills reference their L2 content via relative paths:
+
+```json
+{
+  "id": "debugging",
+  "path": "../agent-skills/skills/debugging/SKILL.md",
+  ...
+}
+```
+
+## Configuration
+
+All settings can be overridden via environment variables or options:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `maxTokens` | 6000 | Max tokens for loaded L2 skills |
+| `maxSkills` | 3 | Max concurrent L2 skills loaded |
+| `maxResults` | 5 | Max skills to match per route |
+
+## Registry Format
+
+```json
+{
+  "version": 1,
+  "skills": [
+    {
+      "id": "debugging",
+      "name": "Debugging",
+      "description": "Structured debugging: reproduce, isolate, hypothesis, fix, verify.",
+      "path": "../agent-skills/skills/debugging/SKILL.md",
+      "methodology": "gate-based",
+      "token_estimate": 2000,
+      "tags": ["workflow", "troubleshooting"],
+      "triggers": {
+        "keywords": ["debug", "fix", "bug", "error", "broken"],
+        "file_patterns": ["*.test.*", "*test*.ts"],
+        "languages": ["any"]
+      }
+    }
+  ]
+}
+```
+
+### Validation Rules
+
+- Max 500 skills in registry
+- Max 50 keywords per skill
+- Max 20 file patterns per skill
+- Paths must be relative, no `../` escape
+- `token_estimate` must be finite positive number
+- `methodology` must be one of: `gate-based`, `role-based`, `utility`
+
+## Routing Algorithm
+
+1. **Filter by language** — if skill specifies languages, skip non-matches
+2. **Keyword scoring:**
+   - Multi-word keyword: substring match (5pts) + word-boundary bonus (+5pts)
+   - Single-word keyword: exact word match (10pts) or substring (5pts)
+3. **File pattern scoring** — minimatch glob patterns (8pts per match)
+4. **Tag overlap bonus** — +2pts per tag found in message
+5. **Sort by score** — highest first
+6. **Apply token budget** — skip skills that would exceed budget
+7. **Return top N** — limited by `maxResults`
+
+## Lifecycle Management
+
+### Loading
+
+When a skill is matched:
+1. Check if already loaded → skip
+2. Load L2 content from file (or fallback to description)
+3. Estimate token count (~3 chars per token)
+4. If budget exceeded → evict oldest skill
+5. Add to active set
+
+### Eviction
+
+When token budget is full:
+- Evict least-recently-used (LRU) skill
+- Frees tokens for new skill
+- Prevents context overflow
+
+### State
+
+```
+Active skills:
+  - id: "debugging"
+  - content: "<full SKILL.md>"
+  - tokensUsed: 2100
+  - loadedAt: 1748901234567
+```
+
+## Complexity Detection
+
+For tasks that match multiple methodologies, the system detects complexity:
+
+| Signals | Complexity | Action |
+|---------|------------|--------|
+| 0 | simple | Proceed normally |
+| 1-2 | medium | Offer methodology choice |
+| 3+ | high | Recommend parallel comparison |
+
+Signal sources:
+- Multi-methodology match (gate + role)
+- File count (>3 files touched)
+- Architecture keywords (design, pattern, refactor)
+- Schema keywords (migration, change schema)
+- Production keywords (deploy, release, canary)
+- Ambiguous language (maybe, possibly, might)
+
+## Tests
+
+```bash
+npm test                      # all 82 tests
+npm run test:registry         # 24 registry tests
+npm run test:routing          # 25 routing tests
+npm run test:methodology      # 15 methodology tests
+npm run test:lifecycle        # 18 lifecycle tests
+```
+
+### Coverage
+
+| Suite | Tests | What it covers |
+|-------|-------|----------------|
+| Registry | 24 | Validation, normalization, path traversal, limits |
+| Routing | 25 | Keyword matching, file patterns, scoring, budgets |
+| Methodology | 15 | Complexity detection, methodology choice |
+| Lifecycle | 18 | Loading, eviction, token tracking, complexity |
+
+## Limitations
+
+1. **Bash tool only for hooks** — SessionStart hook uses Node.js, Windows requires git bash or WSL
+2. **Static routing** — keyword/pattern matching is heuristic, not semantic
+3. **Manual registry** — skills must be registered in JSON, not auto-discovered
+4. **Path assumptions** — assumes skill paths are relative to registry location
+5. **No caching** — L2 content is re-read on each load (could cache in future)
+
+## Roadmap
+
+- [ ] Auto-discovery from skill directories
+- [ ] L2 content caching with TTL
+- [ ] Semantic routing via embeddings
+- [ ] CLI tool for registry management
+- [ ] Statistics dashboard (what skills load most often)
+- [ ] Integration with circuit-breaker for retry logic
+
+## License
+
+MIT
