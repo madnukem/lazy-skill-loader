@@ -12,23 +12,31 @@
     "progressive-disclosure"
   ],
   "scripts": {
-    "test": "node tests/registry.test.js && node tests/routing.test.js && node tests/methodology.test.js && node tests/lifecycle.test.js && node tests/paths.test.js && node tests/payload.test.js",
+    "test": "node tests/registry.test.js && node tests/routing.test.js && node tests/methodology.test.js && node tests/lifecycle.test.js && node tests/paths.test.js && node tests/payload.test.js && node tests/frontmatter.test.js && node tests/stub-generator.test.js && node tests/vault.test.js",
     "test:registry": "node tests/registry.test.js",
     "test:routing": "node tests/routing.test.js",
     "test:methodology": "node tests/methodology.test.js",
     "test:lifecycle": "node tests/lifecycle.test.js",
     "test:paths": "node tests/paths.test.js",
-    "test:payload": "node tests/payload.test.js"
+    "test:payload": "node tests/payload.test.js",
+    "test:frontmatter": "node tests/frontmatter.test.js",
+    "test:stub": "node tests/stub-generator.test.js",
+    "test:vault": "node tests/vault.test.js"
+  },
+  "bin": {
+    "lazy-bootstrap": "bin/lazy-bootstrap.js"
   },
   "engines": {
     "node": ">=14.14"
   },
   "files": [
+    "bin",
     "core",
     "hooks",
     "lib",
     "registry",
     "SKILL.md",
+    "SPEC-skill-patching.md",
     "README.md",
     "LICENSE",
     "package.json"
