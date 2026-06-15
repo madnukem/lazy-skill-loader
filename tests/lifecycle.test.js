@@ -13,8 +13,11 @@ function makeRegistry(skills) {
 }
 
 function skill(id, keywords, opts = {}) {
+  // ids must be callable "<plugin>:<skill>" form (registry v2).
+  // Allow tests to pass a bare name and auto-prefix it.
+  const fullId = id.includes(':') ? id : `test-plugin:${id}`;
   return makeSkill({
-    id,
+    id: fullId,
     name: id.replace(/-/g, ' '),
     description: `${id} description text here`,
     triggers: {
@@ -56,7 +59,7 @@ test('routeAndLoad loads matching skill', () => {
   const reg = makeRegistry([skill('debug', ['debug', 'fix', 'error'])]);
   const mgr = createManager(reg);
   const result = mgr.routeAndLoad('fix the bug', []);
-  assert(result.loaded.includes('debug'), `Expected debug loaded, got ${result.loaded}`);
+  assert(result.loaded.includes('test-plugin:debug'), `Expected debug loaded, got ${result.loaded}`);
   assert(result.active.length === 1, `Expected 1 active, got ${result.active.length}`);
 });
 
@@ -120,7 +123,7 @@ test('evict removes specific skill', () => {
   const mgr = createManager(reg);
   mgr.routeAndLoad('debug this', []);
   assert(mgr.getActive().length === 1, 'Expected 1 active before evict');
-  const result = mgr.evict('debug');
+  const result = mgr.evict('test-plugin:debug');
   assert(result === true, 'Expected true from evict');
   assert(mgr.getActive().length === 0, `Expected 0 active after evict, got ${mgr.getActive().length}`);
   assert(mgr.getTotalTokens() === 0, `Expected 0 tokens after evict, got ${mgr.getTotalTokens()}`);
@@ -153,8 +156,8 @@ test('already active skill is not loaded again', () => {
   const mgr = createManager(reg);
   const r1 = mgr.routeAndLoad('debug this', []);
   const r2 = mgr.routeAndLoad('debug more', []);
-  assert(r1.loaded.includes('debug'), 'First call should load');
-  assert(!r2.loaded.includes('debug'), 'Second call should skip (already active)');
+  assert(r1.loaded.includes('test-plugin:debug'), 'First call should load');
+  assert(!r2.loaded.includes('test-plugin:debug'), 'Second call should skip (already active)');
   assert(mgr.getActive().length === 1, 'Should still have exactly 1 active');
 });
 
@@ -192,10 +195,10 @@ test('evicted skill can be re-loaded', () => {
   const reg = makeRegistry([skill('debug', ['debug'])]);
   const mgr = createManager(reg);
   mgr.routeAndLoad('debug this', []);
-  mgr.evict('debug');
+  mgr.evict('test-plugin:debug');
   assert(mgr.getActive().length === 0, 'Expected 0 after evict');
   const result = mgr.routeAndLoad('debug again', []);
-  assert(result.loaded.includes('debug'), 'Should re-load after eviction');
+  assert(result.loaded.includes('test-plugin:debug'), 'Should re-load after eviction');
   assert(mgr.getActive().length === 1, 'Expected 1 active after re-load');
 });
 

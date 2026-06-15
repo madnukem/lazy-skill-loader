@@ -1,12 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": [
     {
-      "id": "tdd-workflow",
+      "id": "agent-skills:test-driven-development",
       "name": "Test-Driven Development",
       "description": "Red-Green-Refactor: write failing test, implement minimum code, refactor. Use when implementing features or fixing bugs.",
       "source": "agent-skills",
-      "path": "skills/gate-based/tdd/SKILL.md",
+      "path": "skills/test-driven-development/SKILL.md",
       "triggers": {
         "keywords": ["test", "tdd", "spec", "implement", "bug fix", "red-green"],
         "file_patterns": ["**/*.test.*", "**/*.spec.*", "**/tests/**"],
@@ -15,14 +15,14 @@
       "tags": ["development", "quality", "testing"],
       "methodology": "gate-based",
       "token_estimate": 1500,
-      "conflicts": []
+      "conflicts": ["superpowers:test-driven-development"]
     },
     {
-      "id": "code-review",
+      "id": "agent-skills:code-review-and-quality",
       "name": "Multi-Axis Code Review",
       "description": "5-axis review: correctness, readability, architecture, security, performance. Use before merging any change.",
       "source": "agent-skills",
-      "path": "skills/gate-based/code-review/SKILL.md",
+      "path": "skills/code-review-and-quality/SKILL.md",
       "triggers": {
         "keywords": ["review", "pr", "merge", "pull request", "code quality"],
         "file_patterns": [],
@@ -31,14 +31,14 @@
       "tags": ["review", "quality"],
       "methodology": "gate-based",
       "token_estimate": 1400,
-      "conflicts": ["gstack-review"]
+      "conflicts": []
     },
     {
-      "id": "debugging",
+      "id": "agent-skills:debugging-and-error-recovery",
       "name": "Systematic Root-Cause Debugging",
       "description": "Structured debugging: reproduce, isolate, hypothesis, fix, verify. Use when tests fail, builds break, or behavior is unexpected.",
       "source": "agent-skills",
-      "path": "skills/gate-based/debugging/SKILL.md",
+      "path": "skills/debugging-and-error-recovery/SKILL.md",
       "triggers": {
         "keywords": ["debug", "fix", "error", "traceback", "crash", "fail", "broken", "exception"],
         "file_patterns": [],
@@ -47,14 +47,14 @@
       "tags": ["debugging", "reliability"],
       "methodology": "gate-based",
       "token_estimate": 1100,
-      "conflicts": []
+      "conflicts": ["superpowers:systematic-debugging"]
     },
     {
-      "id": "planning",
+      "id": "agent-skills:planning-and-task-breakdown",
       "name": "Planning & Task Breakdown",
       "description": "Break work into ordered, implementable tasks. Use when a task is too large to start or when parallel work is possible.",
       "source": "agent-skills",
-      "path": "skills/gate-based/planning/SKILL.md",
+      "path": "skills/planning-and-task-breakdown/SKILL.md",
       "triggers": {
         "keywords": ["plan", "breakdown", "scope", "estimate", "task", "sprint"],
         "file_patterns": [],
@@ -63,14 +63,14 @@
       "tags": ["planning", "project-management"],
       "methodology": "gate-based",
       "token_estimate": 700,
-      "conflicts": ["gstack-office-hours", "gstack-eng-review"]
+      "conflicts": []
     },
     {
-      "id": "spec-driven",
+      "id": "agent-skills:spec-driven-development",
       "name": "Spec-Driven Development",
       "description": "Write structured specs before coding. Use when starting new projects or when requirements are unclear.",
       "source": "agent-skills",
-      "path": "skills/gate-based/spec-driven/SKILL.md",
+      "path": "skills/spec-driven-development/SKILL.md",
       "triggers": {
         "keywords": ["spec", "requirements", "new project", "new feature", "define scope"],
         "file_patterns": [],
@@ -79,14 +79,14 @@
       "tags": ["planning", "specification"],
       "methodology": "gate-based",
       "token_estimate": 800,
-      "conflicts": []
+      "conflicts": ["superpowers:writing-plans"]
     },
     {
-      "id": "security",
+      "id": "agent-skills:security-and-hardening",
       "name": "Security & Hardening",
       "description": "OWASP-aware code hardening. Use when handling user input, auth, data storage, or external integrations.",
       "source": "agent-skills",
-      "path": "skills/gate-based/security/SKILL.md",
+      "path": "skills/security-and-hardening/SKILL.md",
       "triggers": {
         "keywords": ["security", "auth", "vulnerability", "xss", "sql injection", "csrf", "owasp", "sanitize", "encrypt"],
         "file_patterns": [],
@@ -95,14 +95,14 @@
       "tags": ["security"],
       "methodology": "gate-based",
       "token_estimate": 1200,
-      "conflicts": ["gstack-cso"]
+      "conflicts": []
     },
     {
-      "id": "frontend",
+      "id": "agent-skills:frontend-ui-engineering",
       "name": "Frontend UI Engineering",
       "description": "Production-quality UIs with proper component architecture. Use when building user-facing interfaces.",
       "source": "agent-skills",
-      "path": "skills/gate-based/frontend/SKILL.md",
+      "path": "skills/frontend-ui-engineering/SKILL.md",
       "triggers": {
         "keywords": ["ui", "component", "layout", "css", "react", "vue", "svelte", "dom", "render", "style", "button", "form"],
         "file_patterns": ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.css"],
@@ -111,14 +111,14 @@
       "tags": ["frontend", "ui"],
       "methodology": "gate-based",
       "token_estimate": 1100,
-      "conflicts": ["gstack-design-review"]
+      "conflicts": ["frontend-design:frontend-design"]
     },
     {
-      "id": "api-design",
+      "id": "agent-skills:api-and-interface-design",
       "name": "API & Interface Design",
       "description": "Stable API design with proper contracts. Use when designing REST/GraphQL endpoints or module boundaries.",
       "source": "agent-skills",
-      "path": "skills/gate-based/api-design/SKILL.md",
+      "path": "skills/api-and-interface-design/SKILL.md",
       "triggers": {
         "keywords": ["api", "endpoint", "rest", "graphql", "interface", "contract", "schema", "swagger", "openapi"],
         "file_patterns": ["**/routes/**", "**/api/**", "**/*.schema.*"],
@@ -130,11 +130,11 @@
       "conflicts": []
     },
     {
-      "id": "code-simplification",
+      "id": "agent-skills:code-simplification",
       "name": "Code Simplification",
       "description": "Reduce complexity without changing behavior. Use when code works but is harder to read than it should be.",
       "source": "agent-skills",
-      "path": "skills/gate-based/code-simplification/SKILL.md",
+      "path": "skills/code-simplification/SKILL.md",
       "triggers": {
         "keywords": ["simplify", "refactor", "clean up", "reduce complexity", "dry"],
         "file_patterns": [],
@@ -146,11 +146,11 @@
       "conflicts": []
     },
     {
-      "id": "ci-cd",
+      "id": "agent-skills:ci-cd-and-automation",
       "name": "CI/CD & Automation",
       "description": "Build and deployment pipeline setup. Use when configuring test runners, quality gates, or deployment strategies.",
       "source": "agent-skills",
-      "path": "skills/gate-based/ci-cd/SKILL.md",
+      "path": "skills/ci-cd-and-automation/SKILL.md",
       "triggers": {
         "keywords": ["ci", "cd", "pipeline", "deploy", "github actions", "jenkins", "workflow", "yaml pipeline"],
         "file_patterns": [".github/workflows/**", "**/Jenkinsfile", "**/.gitlab-ci.yml"],
@@ -162,11 +162,11 @@
       "conflicts": []
     },
     {
-      "id": "git-workflow",
+      "id": "agent-skills:git-workflow-and-versioning",
       "name": "Git Workflow & Versioning",
       "description": "Structured git practices for commits, branching, and conflict resolution.",
       "source": "agent-skills",
-      "path": "skills/gate-based/git-workflow/SKILL.md",
+      "path": "skills/git-workflow-and-versioning/SKILL.md",
       "triggers": {
         "keywords": ["git", "commit", "branch", "merge", "rebase", "conflict", "cherry-pick"],
         "file_patterns": [],
@@ -178,11 +178,11 @@
       "conflicts": []
     },
     {
-      "id": "documentation",
+      "id": "agent-skills:documentation-and-adrs",
       "name": "Documentation & ADRs",
       "description": "Record architectural decisions and documentation. Use when making architectural changes or shipping features.",
       "source": "agent-skills",
-      "path": "skills/gate-based/documentation/SKILL.md",
+      "path": "skills/documentation-and-adrs/SKILL.md",
       "triggers": {
         "keywords": ["document", "adr", "readme", "architecture decision", "changelog"],
         "file_patterns": ["**/README.md", "**/docs/**", "**/ADR-*"],
@@ -194,11 +194,11 @@
       "conflicts": []
     },
     {
-      "id": "deprecation",
+      "id": "agent-skills:deprecation-and-migration",
       "name": "Deprecation & Migration",
       "description": "Manage deprecation and migration safely. Use when removing old APIs or migrating between implementations.",
       "source": "agent-skills",
-      "path": "skills/gate-based/deprecation/SKILL.md",
+      "path": "skills/deprecation-and-migration/SKILL.md",
       "triggers": {
         "keywords": ["deprecate", "deprecation", "deprecated", "migrate", "migration", "sunset", "remove old", "replace", "upgrade", "legacy"],
         "file_patterns": [],
@@ -210,11 +210,11 @@
       "conflicts": []
     },
     {
-      "id": "incremental",
+      "id": "agent-skills:incremental-implementation",
       "name": "Incremental Implementation",
       "description": "Deliver changes incrementally across multiple files. Use when a task touches more than one file.",
       "source": "agent-skills",
-      "path": "skills/gate-based/incremental/SKILL.md",
+      "path": "skills/incremental-implementation/SKILL.md",
       "triggers": {
         "keywords": ["incremental", "step by step", "small steps", "iterative"],
         "file_patterns": [],
@@ -226,11 +226,11 @@
       "conflicts": []
     },
     {
-      "id": "shipping",
+      "id": "agent-skills:shipping-and-launch",
       "name": "Shipping & Launch",
       "description": "Pre-launch checklist with monitoring and rollback. Use when preparing to deploy to production.",
       "source": "agent-skills",
-      "path": "skills/gate-based/shipping/SKILL.md",
+      "path": "skills/shipping-and-launch/SKILL.md",
       "triggers": {
         "keywords": ["ship", "launch", "deploy", "release", "rollout", "rollback", "go live"],
         "file_patterns": [],
@@ -239,14 +239,14 @@
       "tags": ["deployment", "release"],
       "methodology": "gate-based",
       "token_estimate": 1000,
-      "conflicts": ["gstack-ship"]
+      "conflicts": []
     },
     {
-      "id": "performance",
+      "id": "agent-skills:performance-optimization",
       "name": "Performance Optimization",
       "description": "Profile and optimize application performance. Use when there are performance regressions or Core Web Vitals issues.",
       "source": "agent-skills",
-      "path": "skills/gate-based/performance/SKILL.md",
+      "path": "skills/performance-optimization/SKILL.md",
       "triggers": {
         "keywords": ["performance", "slow", "latency", "optimize", "profile", "benchmark", "lcp", "fcp", "cls"],
         "file_patterns": [],
@@ -258,11 +258,11 @@
       "conflicts": []
     },
     {
-      "id": "context-engineering",
+      "id": "agent-skills:context-engineering",
       "name": "Context Engineering",
       "description": "Optimize agent context setup. Use when starting new sessions or when agent output quality degrades.",
       "source": "agent-skills",
-      "path": "skills/gate-based/context-engineering/SKILL.md",
+      "path": "skills/context-engineering/SKILL.md",
       "triggers": {
         "keywords": ["context", "session", "rules", "claudemd", "setup"],
         "file_patterns": ["**/CLAUDE.md", "**/GEMINI.md", "**/AGENTS.md"],
@@ -274,11 +274,11 @@
       "conflicts": []
     },
     {
-      "id": "doubt-driven",
+      "id": "agent-skills:doubt-driven-development",
       "name": "Doubt-Driven Development",
       "description": "Adversarial review of non-trivial decisions before they stand. Use when correctness matters more than speed.",
       "source": "agent-skills",
-      "path": "skills/gate-based/doubt-driven/SKILL.md",
+      "path": "skills/doubt-driven-development/SKILL.md",
       "triggers": {
         "keywords": ["verify", "doubt", "adversarial", "are you sure", "double check"],
         "file_patterns": [],
@@ -290,11 +290,11 @@
       "conflicts": []
     },
     {
-      "id": "source-driven",
+      "id": "agent-skills:source-driven-development",
       "name": "Source-Driven Development",
       "description": "Ground implementation in official documentation. Use when building with frameworks where correctness matters.",
       "source": "agent-skills",
-      "path": "skills/gate-based/source-driven/SKILL.md",
+      "path": "skills/source-driven-development/SKILL.md",
       "triggers": {
         "keywords": ["docs", "documentation", "official", "reference", "api reference", "man page"],
         "file_patterns": [],
@@ -306,11 +306,11 @@
       "conflicts": []
     },
     {
-      "id": "idea-refine",
+      "id": "agent-skills:idea-refine",
       "name": "Idea Refinement",
       "description": "Iterative idea refinement through divergent and convergent thinking. Use when exploring new concepts.",
       "source": "agent-skills",
-      "path": "skills/gate-based/idea-refine/SKILL.md",
+      "path": "skills/idea-refine/SKILL.md",
       "triggers": {
         "keywords": ["ideate", "brainstorm", "idea", "explore", "concept"],
         "file_patterns": [],
@@ -322,11 +322,11 @@
       "conflicts": []
     },
     {
-      "id": "browser-testing",
+      "id": "agent-skills:browser-testing-with-devtools",
       "name": "Browser Testing with DevTools",
       "description": "Test in real browsers via Chrome DevTools MCP. Use when building or debugging anything that runs in a browser.",
       "source": "agent-skills",
-      "path": "skills/gate-based/browser-testing/SKILL.md",
+      "path": "skills/browser-testing-with-devtools/SKILL.md",
       "triggers": {
         "keywords": ["browser", "devtools", "dom", "console", "network", "screenshot", "e2e"],
         "file_patterns": ["**/*.html", "**/*.tsx", "**/*.jsx"],
@@ -335,151 +335,7 @@
       "tags": ["testing", "browser"],
       "methodology": "gate-based",
       "token_estimate": 1300,
-      "conflicts": []
-    },
-    {
-      "id": "gstack-office-hours",
-      "name": "YC Office Hours",
-      "description": "6 hard questions to rethink your product/approach. Use when starting significant features or pivoting direction.",
-      "source": "gstack",
-      "path": "skills/role-based/office-hours/SKILL.md",
-      "triggers": {
-        "keywords": ["office hours", "rethink", "pivot", "product review", "strategic"],
-        "file_patterns": [],
-        "languages": ["any"]
-      },
-      "tags": ["strategy", "product"],
-      "methodology": "role-based",
-      "token_estimate": 800,
-      "conflicts": []
-    },
-    {
-      "id": "gstack-design-review",
-      "name": "Design Review (Who Codes)",
-      "description": "Designer who codes — audits and fixes UI/UX. Detects AI-generated slop in visual output.",
-      "source": "gstack",
-      "path": "skills/role-based/design-review/SKILL.md",
-      "triggers": {
-        "keywords": ["design review", "ui audit", "visual quality", "design taste"],
-        "file_patterns": ["**/*.css", "**/*.tsx"],
-        "languages": ["any"]
-      },
-      "tags": ["design", "review"],
-      "methodology": "role-based",
-      "token_estimate": 900,
-      "conflicts": ["frontend"]
-    },
-    {
-      "id": "gstack-eng-review",
-      "name": "Engineering Manager Review",
-      "description": "Architecture, data flow, and test coverage review from Eng Manager perspective.",
-      "source": "gstack",
-      "path": "skills/role-based/eng-review/SKILL.md",
-      "triggers": {
-        "keywords": ["eng review", "architecture review", "data flow", "eng manager"],
-        "file_patterns": [],
-        "languages": ["any"]
-      },
-      "tags": ["review", "architecture"],
-      "methodology": "role-based",
-      "token_estimate": 800,
-      "conflicts": ["code-review"]
-    },
-    {
-      "id": "gstack-cso",
-      "name": "Chief Security Officer Review",
-      "description": "STRIDE threat modeling + OWASP Top 10 review. Use for security-critical code.",
-      "source": "gstack",
-      "path": "skills/role-based/cso/SKILL.md",
-      "triggers": {
-        "keywords": ["threat model", "stride", "owasp top 10", "penetration", "security review", "cso"],
-        "file_patterns": [],
-        "languages": ["any"]
-      },
-      "tags": ["security"],
-      "methodology": "role-based",
-      "token_estimate": 900,
-      "conflicts": ["security"]
-    },
-    {
-      "id": "gstack-ship",
-      "name": "Release Engineer Ship",
-      "description": "Full ship pipeline: PR + tests + deploy + canary monitor. Integrated release workflow.",
-      "source": "gstack",
-      "path": "skills/role-based/ship/SKILL.md",
-      "triggers": {
-        "keywords": ["ship it", "release engineer", "canary deploy"],
-        "file_patterns": [],
-        "languages": ["any"]
-      },
-      "tags": ["deployment", "release"],
-      "methodology": "role-based",
-      "token_estimate": 5000,
-      "conflicts": ["shipping"]
-    },
-    {
-      "id": "gstack-benchmark",
-      "name": "Performance Benchmark",
-      "description": "Run performance benchmarks and analyze results. Use when measuring optimization impact.",
-      "source": "gstack",
-      "path": "skills/role-based/benchmark/SKILL.md",
-      "triggers": {
-        "keywords": ["benchmark", "measure", "load test", "stress test", "throughput"],
-        "file_patterns": [],
-        "languages": ["any"]
-      },
-      "tags": ["performance", "testing"],
-      "methodology": "role-based",
-      "token_estimate": 700,
-      "conflicts": []
-    },
-    {
-      "id": "gstack-canary",
-      "name": "SRE Canary Monitor",
-      "description": "Post-deploy monitoring and alerting. Use after deploying to production.",
-      "source": "gstack",
-      "path": "skills/role-based/canary/SKILL.md",
-      "triggers": {
-        "keywords": ["canary", "monitor", "alert", "sre", "post-deploy", "oncall"],
-        "file_patterns": [],
-        "languages": ["any"]
-      },
-      "tags": ["devops", "monitoring"],
-      "methodology": "role-based",
-      "token_estimate": 700,
-      "conflicts": []
-    },
-    {
-      "id": "caveman",
-      "name": "Caveman Token Saver",
-      "description": "Terse, compressed responses. Saves 40-65% tokens. Use for routine tasks where verbosity is waste.",
-      "source": "caveman",
-      "path": "skills/utilities/caveman/SKILL.md",
-      "triggers": {
-        "keywords": ["terse", "concise", "brief", "short answer"],
-        "file_patterns": [],
-        "languages": ["any"]
-      },
-      "tags": ["token-optimization"],
-      "methodology": "utility",
-      "token_estimate": 300,
-      "conflicts": []
-    },
-    {
-      "id": "planning-files",
-      "name": "Planning with Files",
-      "description": "Persistent markdown planning: task_plan.md, progress.md, findings.md. Survives between sessions.",
-      "source": "planning-with-files",
-      "path": "skills/utilities/planning-files/SKILL.md",
-      "triggers": {
-        "keywords": ["persistent plan", "task plan", "long running", "multi-session"],
-        "file_patterns": ["**/task_plan.md", "**/progress.md"],
-        "languages": ["any"]
-      },
-      "tags": ["planning", "persistence"],
-      "methodology": "utility",
-      "token_estimate": 600,
-      "conflicts": []
+      "conflicts": ["chrome-devtools-mcp:chrome-devtools"]
     }
   ]
 }

@@ -124,7 +124,28 @@ Traditional:           Lazy Skill Loader:
 
 ## Installation
 
-### Manual
+### Option 1: Clone into `~/.claude/skills/`
+
+Skill tool discovers skills at `~/.claude/skills/<name>/SKILL.md`. Clone the
+whole repo there so the directory layout matches:
+
+```bash
+git clone <repo> ~/.claude/skills/lazy-skill-loader
+```
+
+After cloning, verify these resources exist at the install location:
+
+```
+~/.claude/skills/lazy-skill-loader/SKILL.md
+~/.claude/skills/lazy-skill-loader/hooks/session-start.js
+~/.claude/skills/lazy-skill-loader/registry/skills-registry.json
+~/.claude/skills/lazy-skill-loader/lib/
+~/.claude/skills/lazy-skill-loader/core/
+```
+
+If any of these is missing, the skill is broken — see `SKILL-REQUIREMENTS.md`.
+
+### Option 2: Register the SessionStart hook
 
 Add to `~/.claude/settings.json`:
 
@@ -136,7 +157,7 @@ Add to `~/.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "node <path-to>/lazy-skill-loader/hooks/session-start.js"
+            "command": "node ~/.claude/skills/lazy-skill-loader/hooks/session-start.js"
           }
         ]
       }
@@ -145,19 +166,41 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-Use absolute paths. Example: `node /home/user/lazy-skill-loader/hooks/session-start.js`
+The hook resolves paths via `__dirname`, so it works regardless of where the
+skill is installed — as long as `hooks/`, `registry/`, and `lib/` are siblings.
 
-### Registry Location
+### Registry schema (v2)
 
-The `registry/skills-registry.json` path is resolved relative to the project root. Skills reference their L2 content via relative paths:
+Each entry uses a **callable** `id` in `plugin:skill` form — the same id the
+Claude Code `Skill` tool accepts. Do not invent private ids like `tdd-workflow`
+that do not resolve through `Skill(...)`: that was the root cause of
+`INCIDENT-2026-06-15-tdd-workflow-unknown`.
 
 ```json
 {
-  "id": "debugging",
-  "path": "../agent-skills/skills/debugging/SKILL.md",
+  "id": "agent-skills:debugging-and-error-recovery",
+  "source": "agent-skills",
+  "path": "skills/debugging-and-error-recovery/SKILL.md",
   ...
 }
 ```
+
+The `path` is the skill's location **inside its source plugin**, used for
+future lazy-loading. The path-existence test resolves it against
+`~/.claude/plugins/cache/**/skills/<dir>/SKILL.md`.
+
+### Verification
+
+After install:
+
+```bash
+cd ~/.claude/skills/lazy-skill-loader && npm test
+node ~/.claude/skills/lazy-skill-loader/hooks/session-start.js
+# Should print: "Lazy Skill Loader: L1 index loaded. N skills available."
+```
+
+If `npm test` fails or the hook prints "could not load registry", the install
+is incomplete — re-check that `registry/` and `lib/` are present.
 
 ## Configuration
 

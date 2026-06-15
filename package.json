@@ -12,15 +12,27 @@
     "progressive-disclosure"
   ],
   "scripts": {
-    "test": "node tests/registry.test.js && node tests/routing.test.js && node tests/methodology.test.js && node tests/lifecycle.test.js",
+    "test": "node tests/registry.test.js && node tests/routing.test.js && node tests/methodology.test.js && node tests/lifecycle.test.js && node tests/paths.test.js && node tests/payload.test.js",
     "test:registry": "node tests/registry.test.js",
     "test:routing": "node tests/routing.test.js",
     "test:methodology": "node tests/methodology.test.js",
-    "test:lifecycle": "node tests/lifecycle.test.js"
+    "test:lifecycle": "node tests/lifecycle.test.js",
+    "test:paths": "node tests/paths.test.js",
+    "test:payload": "node tests/payload.test.js"
   },
   "engines": {
     "node": ">=14.14"
   },
+  "files": [
+    "core",
+    "hooks",
+    "lib",
+    "registry",
+    "SKILL.md",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
   "dependencies": {
     "minimatch": "^10.2.5"
   }

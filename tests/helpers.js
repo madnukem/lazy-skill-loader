@@ -50,10 +50,10 @@ function createTestRunner() {
 /** Generate a valid minimal skill entry for testing. */
 function makeSkill(overrides = {}) {
   return {
-    id: 'test-skill',
+    id: 'test-plugin:test-skill',
     name: 'Test Skill',
     description: 'A test skill for unit testing',
-    source: 'test',
+    source: 'test-plugin',
     path: 'skills/test-skill/SKILL.md',
     triggers: {
       keywords: ['test'],

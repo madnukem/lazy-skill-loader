@@ -102,7 +102,7 @@ test('skill requires triggers', () => {
 test('duplicate skill ids are rejected', () => {
   writeRegistry({
     version: 1,
-    skills: [makeSkill({ id: 'same-id' }), makeSkill({ id: 'same-id', name: 'Other' })],
+    skills: [makeSkill({ id: 'test-plugin:same' }), makeSkill({ id: 'test-plugin:same', name: 'Other' })],
   });
   const { validateRegistry } = require('../lib/registry');
   const errors = validateRegistry(readRegistry());
@@ -189,6 +189,27 @@ test('real skills-registry.json is valid', () => {
   const { validateRegistry } = require('../lib/registry');
   const errors = validateRegistry(real);
   assert(errors.length === 0, `Real registry has errors: ${JSON.stringify(errors)}`);
+});
+
+test('real registry uses callable plugin:skill ids', () => {
+  const real = require('../registry/skills-registry.json');
+  for (const skill of real.skills) {
+    assert(/^[a-z0-9-]+:[a-z0-9-]+$/.test(skill.id),
+      `id "${skill.id}" is not callable form "<plugin>:<skill>"`);
+  }
+});
+
+test('real registry has no phantom (non-callable) entries', () => {
+  // Regression for INCIDENT-2026-06-15-tdd-workflow-unknown:
+  // gstack-*, caveman, planning-files were advertised but not installed.
+  const real = require('../registry/skills-registry.json');
+  const knownPhantoms = ['gstack-office-hours', 'gstack-design-review',
+    'gstack-eng-review', 'gstack-cso', 'gstack-ship', 'gstack-benchmark',
+    'gstack-canary', 'caveman', 'planning-files'];
+  for (const skill of real.skills) {
+    assert(!knownPhantoms.includes(skill.id),
+      `phantom id "${skill.id}" must not be in registry`);
+  }
 });
 
 // ── Path Traversal Guard ───────────────────────────────────────────────────
