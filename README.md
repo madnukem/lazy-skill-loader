@@ -280,13 +280,17 @@ original from before any patching).
 ### CLI commands
 
 ```
-lazy-bootstrap --apply [--no-custom] [--no-plugins]   backup + patch (default)
-lazy-bootstrap --check                                 report drift only
-lazy-bootstrap --sync [--force]                        re-apply stubs
-lazy-bootstrap --restore [glob]                        restore originals
-lazy-bootstrap --list                                  show all vault entries
-lazy-bootstrap --help                                  usage
+lazy-bootstrap --apply [--no-custom] [--no-plugins] [--plugin NAME]   backup + patch (default)
+lazy-bootstrap --check                                                 report drift only
+lazy-bootstrap --sync [--force]                                        re-apply stubs
+lazy-bootstrap --restore [glob]                                        restore originals
+lazy-bootstrap --list                                                  show all vault entries
+lazy-bootstrap --help                                                  usage
 ```
+
+`--plugin NAME` restricts the scan to a single plugin (e.g. `agent-skills`,
+`superpowers`, `chrome-devtools-mcp`). Useful for incremental rollout or
+testing on a small plugin first.
 
 ### What gets patched
 

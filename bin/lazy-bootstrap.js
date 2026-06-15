@@ -16,7 +16,7 @@ const path = require('path');
 const vault = require('../lib/vault');
 
 function parseArgs(argv) {
-  const out = { action: null, filter: null, includeCustom: true, includePlugins: true };
+  const out = { action: null, filter: null, includeCustom: true, includePlugins: true, plugin: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--apply') out.action = 'apply';
@@ -27,6 +27,7 @@ function parseArgs(argv) {
     else if (a === '--force') out.force = true;
     else if (a === '--no-custom') out.includeCustom = false;
     else if (a === '--no-plugins') out.includePlugins = false;
+    else if (a === '--plugin') { out.plugin = argv[++i]; }
     else if (a === '--help' || a === '-h') out.action = 'help';
     else if (!a.startsWith('--')) out.filter = a;
   }
@@ -39,8 +40,9 @@ function usage() {
     'lazy-bootstrap — manage lazy-skills vault',
     '',
     'Usage:',
-    '  lazy-bootstrap --apply [--no-custom] [--no-plugins]',
+    '  lazy-bootstrap --apply [--no-custom] [--no-plugins] [--plugin NAME]',
     '      Backup + patch all SKILL.md files (default).',
+    '      --plugin NAME restricts plugin scan to a single plugin (e.g. agent-skills).',
     '  lazy-bootstrap --check',
     '      Report drift only; no filesystem changes.',
     '  lazy-bootstrap --sync [--force]',
@@ -52,6 +54,8 @@ function usage() {
     '',
     'Examples:',
     '  lazy-bootstrap --apply',
+    '  lazy-bootstrap --apply --no-plugins            # custom skills only',
+    '  lazy-bootstrap --apply --plugin agent-skills   # one plugin only',
     '  lazy-bootstrap --check',
     '  lazy-bootstrap --restore "agent-skills:*"',
     '  lazy-bootstrap --list | head',
@@ -137,6 +141,7 @@ function main() {
     pluginsDir: vault.defaultPluginsDir(),
     includeCustom: args.includeCustom,
     includePlugins: args.includePlugins,
+    pluginFilter: args.plugin,
   });
   console.log(`Bootstrap complete: ${fmtSummary(summary)}`);
   printErrors(summary.errors);

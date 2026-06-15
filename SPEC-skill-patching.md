@@ -128,8 +128,9 @@ Restore writes are **byte-exact** copies of the backup. If a backup is missing, 
 ## 9. CLI commands
 
 ```
-lazy-bootstrap --apply [--no-custom] [--no-plugins]
+lazy-bootstrap --apply [--no-custom] [--no-plugins] [--plugin NAME]
     Default. Backup + patch all qualifying skills.
+    --plugin NAME restricts the scan to a single plugin (e.g. agent-skills).
 
 lazy-bootstrap --check
     Report drift only. No filesystem changes. Exit 1 if drifted.
