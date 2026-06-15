@@ -114,12 +114,18 @@ Traditional:           Lazy Skill Loader:
 
 | File | Purpose |
 |------|---------|
-| `hooks/session-start.js` | SessionStart hook — outputs L1 index table |
+| `hooks/session-start.js` | SessionStart hook — outputs L1 index table + drift warning |
 | `lib/router.js` | Keyword + file pattern routing with scoring |
 | `lib/lifecycle.js` | L2 loading, token budget, eviction |
 | `lib/registry.js` | Registry validation and normalization |
 | `lib/methodology.js` | Complexity detection + methodology choice |
+| `lib/frontmatter.js` | Minimal YAML parser/stringifier for SKILL.md |
+| `lib/hash.js` | SHA-256 helper for idempotency and drift |
+| `lib/stub-generator.js` | Renders compact stub replacing original SKILL.md |
+| `lib/vault.js` | Bootstrap / restore / sync / drift engine |
+| `bin/lazy-bootstrap.js` | CLI for vault operations |
 | `registry/skills-registry.json` | Central registry of all skills |
+| `SPEC-skill-patching.md` | Patch contract, risks, recovery procedures |
 | `skills/lazy-skill-loader/SKILL.md` | This skill's own definition |
 
 ## Installation
@@ -201,6 +207,108 @@ node ~/.claude/skills/lazy-skill-loader/hooks/session-start.js
 
 If `npm test` fails or the hook prints "could not load registry", the install
 is incomplete — re-check that `registry/` and `lib/` are present.
+
+## Activating Vault Mode (token savings ~80%)
+
+The L1 index above only saves you tokens if Claude Code's hardcoded skill
+discovery can be prevented — and it can't, hooks run too late. **Vault Mode**
+works around this by patching `SKILL.md` files in place: originals are backed
+up to `~/.claude/lazy-skills/`, and replaced with compact stubs (~30 tokens
+each instead of ~200). Plugin namespaces (`plugin:skill` callable IDs) are
+preserved byte-for-byte.
+
+See `SPEC-skill-patching.md` for the full contract. The short version:
+
+### Migration steps
+
+**1. Smoke test on one skill first** (recommended):
+
+```bash
+node ~/.claude/skills/lazy-skill-loader/bin/lazy-bootstrap.js --apply --no-plugins
+```
+
+This patches only custom skills in `~/.claude/skills/` (typically ~10–15
+files). Plugin skills are untouched.
+
+**2. Verify nothing broke:**
+
+```bash
+# Restart your Claude Code session, then check available-skills:
+# - Stub descriptions should now read "[lazy] <hint>. Vault: ~/.claude/..."
+# - All skill IDs should still resolve via Skill('<name>')
+# - L1 index from the hook should still print normally
+```
+
+If any skill fails to resolve, **restore immediately**:
+
+```bash
+node ~/.claude/skills/lazy-skill-loader/bin/lazy-bootstrap.js --restore
+```
+
+**3. Full bootstrap (custom + plugins):**
+
+```bash
+node ~/.claude/skills/lazy-skill-loader/bin/lazy-bootstrap.js --apply
+```
+
+This patches all plugin skills under `~/.claude/plugins/cache/` as well.
+Expect ~50–80 files total depending on what you have installed.
+
+### Daily usage after migration
+
+Nothing changes from your side. Claude Code reads the stubs (tiny), the
+SessionStart hook still prints the L1 index (same), and when the agent
+actually needs a skill's full content it `Read`s the vault backup.
+
+### Drift detection (automatic)
+
+Plugin updates via `git pull` may overwrite our stubs. The SessionStart hook
+detects this by comparing SHA-256 of each stub against the recorded hash and
+warns you:
+
+```
+⚠ Lazy Skill Loader: 3 skill(s) drifted (likely plugin update):
+  - agent-skills:code-simplification
+  - superpowers:brainstorming
+  - ...
+Run: lazy-bootstrap --sync
+```
+
+Run `--sync` to re-apply stubs. The vault backup is preserved (it's the
+original from before any patching).
+
+### CLI commands
+
+```
+lazy-bootstrap --apply [--no-custom] [--no-plugins]   backup + patch (default)
+lazy-bootstrap --check                                 report drift only
+lazy-bootstrap --sync [--force]                        re-apply stubs
+lazy-bootstrap --restore [glob]                        restore originals
+lazy-bootstrap --list                                  show all vault entries
+lazy-bootstrap --help                                  usage
+```
+
+### What gets patched
+
+- `~/.claude/skills/<name>/SKILL.md` (custom skills)
+- `~/.claude/plugins/cache/<owner>/<plugin>/<version>/skills/<dir>/SKILL.md` (plugin skills)
+
+### What does NOT get patched
+
+- `lazy-skill-loader` itself (self-protected)
+- Skills without frontmatter / `name` field (reported as error)
+- Files that are already stubs but not in registry (manual restore required)
+- Anything outside the two locations above
+
+### Rollback
+
+Full rollback to pre-vault state:
+
+```bash
+lazy-bootstrap --restore        # restore all originals from vault
+# Vault directory can then be deleted if desired:
+rm -rf ~/.claude/lazy-skills
+```
 
 ## Configuration
 
@@ -306,21 +414,31 @@ Signal sources:
 ## Tests
 
 ```bash
-npm test                      # all 82 tests
-npm run test:registry         # 24 registry tests
+npm test                      # all 128 tests
+npm run test:registry         # 26 registry tests
 npm run test:routing          # 25 routing tests
 npm run test:methodology      # 15 methodology tests
 npm run test:lifecycle        # 18 lifecycle tests
+npm run test:paths            # 4 path tests
+npm run test:payload          # 11 payload tests
+npm run test:frontmatter      # 8 YAML parser tests
+npm run test:stub             # 9 stub generator tests
+npm run test:vault            # 12 vault integration tests
 ```
 
 ### Coverage
 
 | Suite | Tests | What it covers |
 |-------|-------|----------------|
-| Registry | 24 | Validation, normalization, path traversal, limits |
+| Registry | 26 | Validation, normalization, path traversal, limits |
 | Routing | 25 | Keyword matching, file patterns, scoring, budgets |
 | Methodology | 15 | Complexity detection, methodology choice |
 | Lifecycle | 18 | Loading, eviction, token tracking, complexity |
+| Paths | 4 | Path resolution across platforms |
+| Payload | 11 | Hook payload shape |
+| Frontmatter | 8 | YAML parse/stringify edge cases |
+| Stub Generator | 9 | Stub rendering, hint truncation, isStub detection |
+| Vault | 12 | Bootstrap, restore, sync, drift, idempotency, plugin versions |
 
 ## Limitations
 
@@ -332,10 +450,12 @@ npm run test:lifecycle        # 18 lifecycle tests
 
 ## Roadmap
 
+- [x] Vault Mode (patch-in-place stubs for ~80% token savings)
+- [x] Drift detection via SessionStart hook
+- [x] CLI tool for vault management (`lazy-bootstrap`)
 - [ ] Auto-discovery from skill directories
 - [ ] L2 content caching with TTL
 - [ ] Semantic routing via embeddings
-- [ ] CLI tool for registry management
 - [ ] Statistics dashboard (what skills load most often)
 - [ ] Integration with circuit-breaker for retry logic
 
