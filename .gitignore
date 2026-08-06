@@ -1,3 +1,6 @@
 node_modules/
 *.log
 .DS_Store
+
+# Registry is generated per-user from installed skills — never commit it
+registry/skills-registry.json
