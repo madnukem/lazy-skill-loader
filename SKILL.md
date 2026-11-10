@@ -1,9 +1,19 @@
 ---
 name: lazy-skill-loader
-description: Progressive disclosure skill loader — keeps L1 index in context, loads L2 skill content on demand. Reduces prompt overhead from 40-50K to ~2K tokens. Use when managing skills or when the system needs to determine which skills are relevant for a task.
+description: Historical documentation and recovery guidance for the deprecated lazy-skill-loader. Native Claude Code and Codex skill loading replaces this project.
 ---
 
-# Lazy Skill Loader
+# Lazy Skill Loader — DEPRECATED
+
+Retired on 2026-11-10. Do not install the loader, patch skills into stubs, or
+activate the workflow below. Use the harness's native skill discovery and loading.
+
+For removal of an existing installation, follow
+[the verified recovery procedure](README.md#existing-installations): preserve
+backups, remove loader hooks, verify originals against their recorded hashes,
+and restore only recognised stubs. The legacy CLI is not a safe uninstall shortcut.
+
+The remaining sections are historical documentation of the retired prototype.
 
 ## Overview
 

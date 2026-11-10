@@ -1,7 +1,10 @@
 # Installing lazy-skill-loader
 
-> **For the LLM doing the install.** Read this top to bottom, then execute.
-> Works the same for Claude, GPT, Gemini, or any capable model.
+> **DEPRECATED — 2026-11-10. Do not install this loader.**
+> Use native Claude Code or Codex skills. For an existing installation, follow
+> the verified recovery procedure in [README.md](README.md#existing-installations).
+> The steps below are retained as historical documentation only; do not execute
+> them as an installation or migration workflow.
 
 ## What this does
 

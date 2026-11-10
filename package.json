@@ -1,7 +1,7 @@
 {
   "name": "lazy-skill-loader",
   "version": "0.1.0",
-  "description": "Progressive disclosure skill loader for Claude Code — L1 registry, keyword router, on-demand L2 loading",
+  "description": "DEPRECATED: retired skill loader; use native Claude Code and Codex skill loading",
   "author": "Vassa",
   "license": "MIT",
   "keywords": [

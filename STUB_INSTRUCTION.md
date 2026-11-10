@@ -1,7 +1,9 @@
 # STUB INSTRUCTION — How to compress a SKILL.md into a lazy-loaded stub
 
-> **Read this before compressing any skill.** This is the canonical instruction.
-> Any LLM (Claude, GPT, Gemini, local models) follows it the same way.
+> **DEPRECATED — 2026-11-10. Historical reference only.**
+> Do not create or update these stubs. Native Claude Code and Codex skill loading
+> replaces this approach. See [README.md](README.md) for the deprecation decision
+> and recovery guidance for existing installations.
 
 ## Why we compress
 

@@ -1,6 +1,38 @@
-# Lazy Skill Loader for Claude Code
+# Lazy Skill Loader — DEPRECATED
 
-> Progressive disclosure system — L1 index stays in prompt, L2 skills load on demand. Cuts 40K+ token overhead to ~600 tokens.
+> **Deprecated on 2026-11-10. This project is no longer maintained.**
+> Use the native skill loading provided by Claude Code and Codex. Do not install
+> this loader or run its patching commands on an active skill collection.
+
+Both [Claude Code](https://code.claude.com/docs/en/skills) and
+[Codex](https://learn.chatgpt.com/docs/build-skills) expose skill metadata first
+and load full instructions when needed. The original premise that all skill
+bodies always occupy context, and the advertised 80% savings, are not a valid
+baseline for their native skill systems.
+
+The 2026-11-10 audit also reproduced data-loss and compatibility defects in
+vault mode: `--sync` discards updated originals, reapplying an edited stub can
+overwrite its backup, and stubs remove runtime frontmatter fields. The legacy
+restore command does not check for local edits or backup corruption.
+
+## Existing installations
+
+1. Preserve a separate copy of the vault, registry, current skill files, and
+   affected harness settings before changing them.
+2. Remove only this loader's SessionStart hooks from each active profile.
+3. For each recorded source, verify the backup against `original_hash` and
+   confirm that it is a full original, not another stub. Restore only recognised
+   loader stubs. Preserve current non-stub files and resolve conflicts explicitly.
+4. Check for remaining stubs and vault references before removing the installed
+   loader. Keep the recovery archive outside skill discovery directories.
+
+Do not use `--sync`, `--apply`, or an unchecked `--restore` as an uninstall shortcut.
+
+## Historical documentation
+
+The remainder documents the retired prototype. Its installation commands,
+context-management claims, and savings estimates are historical, not current
+recommendations.
 
 By Vassa
 
